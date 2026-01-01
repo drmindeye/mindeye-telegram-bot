@@ -13,7 +13,7 @@ ADMIN_ID = int(os.environ.get('637924570', 0))
 # Your actual GitHub Pages URL
 MINI_APP_URL = "https://drmindeye.github.io/mindeye-telegram-bot/" 
 
-bot = telebot.TeleBot(TOKEN, threaded=False)
+bot = telebot.TeleBot(8474378531:AAFDxtqbXZtz-bq6XAX67Pu5h-5JmGYfYzI, threaded=False)
 admin_states = {}
 
 def get_db():
