@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 # CONFIGURATION
 TOKEN = os.environ.get('TOKEN')
-ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
+ADMIN_ID = os.environ.get('ADMIN_ID') # Ensure this is your ID in Render Env Vars
 MINI_APP_URL = "https://drmindeye.github.io/mindeye-telegram-bot/" 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
@@ -19,6 +19,7 @@ def get_db():
     conn = sqlite3.connect('subscribers.db', check_same_thread=False)
     return conn
 
+# Database Initialization
 with get_db() as conn:
     conn.execute('''CREATE TABLE IF NOT EXISTS users 
                   (user_id INTEGER PRIMARY KEY, plan TEXT DEFAULT 'free')''')
@@ -27,58 +28,87 @@ with get_db() as conn:
 def start(message):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("🚀 Open MindEye Analyst", web_app=WebAppInfo(url=MINI_APP_URL)))
-    bot.send_message(message.chat.id, "<b>Welcome to MindEye AI!</b>", parse_mode="HTML", reply_markup=markup)
+    bot.send_message(message.chat.id, "<b>Welcome to MindEye AI Analyst!</b>\n\nUse the button below to access signals and trading bots.", parse_mode="HTML", reply_markup=markup)
 
+# ADMIN SIGNAL BROADCASTING
 @bot.message_handler(commands=['send'])
-def send_signal_admin(message):
-    if message.from_user.id != ADMIN_ID: return
+def admin_broadcast_start(message):
+    if str(message.from_user.id) != str(ADMIN_ID):
+        return
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("Free", callback_data='send_free'), InlineKeyboardButton("Pro", callback_data='send_pro'))
-    markup.add(InlineKeyboardButton("Premium", callback_data='send_premium'), InlineKeyboardButton("All", callback_data='send_all'))
-    bot.reply_to(message, "Target Audience:", reply_markup=markup)
+    markup.add(InlineKeyboardButton("Free Users", callback_data='send_free'), InlineKeyboardButton("Pro Users", callback_data='send_pro'))
+    markup.add(InlineKeyboardButton("All Users", callback_data='send_all'))
+    bot.reply_to(message, "Who do you want to send a signal to?", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('send_'))
-def admin_set_target(call):
-    plan = call.data.split('_')[1]
-    admin_states[call.from_user.id] = plan
+def set_broadcast_target(call):
+    target = call.data.split('_')[1]
+    admin_states[call.from_user.id] = target
     bot.answer_callback_query(call.id)
-    bot.send_message(call.message.chat.id, f"Target: {plan.upper()}. Send signal:")
+    bot.send_message(call.message.chat.id, f"Target set to: {target.upper()}. Now send the signal message (text, image, or chart):")
 
 @bot.message_handler(func=lambda m: m.from_user.id in admin_states)
-def broadcast_now(message):
+def perform_broadcast(message):
     target = admin_states.pop(message.from_user.id)
     with get_db() as conn:
         cursor = conn.cursor()
-        cursor.execute("SELECT user_id FROM users WHERE plan = ? OR ? = 'all'", (target, target))
+        if target == 'all':
+            cursor.execute("SELECT user_id FROM users")
+        else:
+            cursor.execute("SELECT user_id FROM users WHERE plan = ?", (target,))
         users = cursor.fetchall()
-    for u in users:
-        try: bot.copy_message(u[0], message.chat.id, message.message_id)
-        except: continue
-    bot.reply_to(message, f"Sent to {len(users)} users.")
 
+    count = 0
+    for u in users:
+        try:
+            bot.copy_message(u[0], message.chat.id, message.message_id)
+            count += 1
+        except:
+            continue
+    bot.reply_to(message, f"✅ Broadcast complete. Signal sent to {count} users.")
+
+# MINI APP INTERACTION
 @bot.message_handler(content_types=['web_app_data'])
-def handle_app_events(message):
+def handle_app_data(message):
     data = json.loads(message.web_app_data.data)
+    user_id = message.from_user.id
+    
     if data['action'] == 'subscribe':
-        with get_db() as conn: conn.execute("INSERT OR REPLACE INTO users (user_id, plan) VALUES (?, ?)", (message.from_user.id, 'free'))
-        bot.send_message(message.from_user.id, "✅ Subscribed to Free Signals!")
+        with get_db() as conn:
+            conn.execute("INSERT OR REPLACE INTO users (user_id, plan) VALUES (?, ?)", (user_id, 'free'))
+        bot.send_message(user_id, "📈 <b>Success!</b> You are now registered for Free Signals.", parse_mode="HTML")
+
     elif data['action'] == 'buy_stars':
         prices = {'pro': 1499, 'premium': 2999} 
-        bot.send_invoice(message.chat.id, f"MindEye {data['plan']}", "Access signals", f"plan_{data['plan']}", "", "XTR", [LabeledPrice("Price", prices[data['plan']])])
+        bot.send_invoice(
+            chat_id=user_id,
+            title=f"MindEye {data['plan'].capitalize()}",
+            description=f"Monthly access to {data['plan']} signals.",
+            payload=f"plan_{data['plan']}",
+            provider_token="", 
+            currency="XTR",
+            prices=[LabeledPrice(label="Subscription", amount=prices[data['plan']])]
+        )
 
 @bot.pre_checkout_query_handler(func=lambda query: True)
-def process_checkout(query): bot.answer_pre_checkout_query(query.id, ok=True)
+def checkout_ok(query):
+    bot.answer_pre_checkout_query(query.id, ok=True)
 
 @bot.message_handler(content_types=['successful_payment'])
-def payment_done(message):
+def payment_success(message):
     plan = message.successful_payment.invoice_payload.split('_')[1]
-    with get_db() as conn: conn.execute("UPDATE users SET plan = ? WHERE user_id = ?", (plan, message.chat.id))
-    bot.send_message(message.chat.id, f"🎉 You are now {plan.upper()}!")
+    with get_db() as conn:
+        conn.execute("UPDATE users SET plan = ? WHERE user_id = ?", (plan, message.chat.id))
+    bot.send_message(message.chat.id, f"🌟 <b>Payment Received!</b>\nWelcome to the {plan.upper()} group.", parse_mode="HTML")
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
-    bot.process_new_updates([telebot.types.Update.de_json(request.get_data().decode('utf-8'))])
-    return ''
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = telebot.types.Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return ''
+    return 'Forbidden', 403
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
