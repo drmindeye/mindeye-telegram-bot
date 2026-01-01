@@ -11,13 +11,13 @@
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: #ffffff; background: #0d1117; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
         .container { width: 100%; max-width: 400px; padding: 20px; }
-        .card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 20px; text-align: center; }
-        .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--tv-blue); margin-bottom: 10px; }
-        h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--tv-blue); }
-        .btn { width: 100%; padding: 15px; margin: 10px 0; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; transition: 0.2s; display: block; text-decoration: none; }
-        .btn-primary { background: var(--tv-blue); color: white; }
-        .btn-secondary { background: rgba(255, 255, 255, 0.1); color: white; }
-        .plan-info { font-size: 0.8rem; color: #aaa; margin-top: -8px; margin-bottom: 10px; display: block; }
+        .card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .logo { width: 85px; height: 85px; border-radius: 50%; border: 2px solid var(--tv-blue); margin-bottom: 15px; object-fit: cover; }
+        h2 { font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; color: #fff; letter-spacing: 1px; }
+        .btn { width: 100%; padding: 16px; margin: 8px 0; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px; color: white; }
+        .btn-primary { background: var(--tv-blue); box-shadow: 0 4px 15px rgba(41, 98, 255, 0.3); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.08); border: 1px solid var(--border); }
+        .plan-info { font-size: 0.75rem; color: #888; margin-top: -5px; margin-bottom: 12px; display: block; font-weight: 400; }
         .screen { display: none; }
         #home { display: block; }
     </style>
@@ -29,6 +29,9 @@
             <h2>MINDEYE AI ANALYST</h2>
             <button class="btn btn-primary" onclick="show('signals')">📊 Signals & Analysis</button>
             <button class="btn btn-secondary" onclick="tg('https://t.me/mindeyetrading')">🎓 Mentorship</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">🤝 Account Management</button>
+            <button class="btn btn-secondary" onclick="show('bots')">🤖 Bot Trading</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📈 Results</button>
             <button class="btn btn-secondary" onclick="tg('https://t.me/mindeyesupport')">💬 Support</button>
         </div>
 
@@ -41,9 +44,17 @@
             <button class="btn btn-primary" onclick="sendAction('buy_stars', 'pro')">💼 Pro Plan ($14.99/mo)</button>
             <span class="plan-info">3-7 signals/week • 3 Pairs</span>
 
-            <button class="btn btn-primary" onclick="sendAction('buy_stars', 'premium')">👑 Premium Plan ($29.99/mo)</button>
+            <button class="btn btn-primary" onclick="sendAction('buy_stars', 'premium')">👑 Premium Plan ($14.99/mo)</button>
             <span class="plan-info">7-12 signals/week • 6 Pairs</span>
 
+            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="bots" class="card screen">
+            <h2>MindEye AI Bots</h2>
+            <p style="font-size: 0.9rem; color: #bbb; margin-bottom: 20px;">Automated trading for Gold and Forex pairs.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get XAUUSD Bot</button>
             <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
         </div>
     </div>
@@ -56,16 +67,18 @@
         function show(id) {
             document.querySelectorAll('.screen, #home').forEach(e => e.style.display = 'none');
             document.getElementById(id).style.display = 'block';
+            webapp.HapticFeedback.impactOccurred('light');
         }
 
-        function tg(url) { webapp.openTelegramLink(url); }
+        function tg(url) { 
+            webapp.openTelegramLink(url); 
+        }
 
         function sendAction(action, plan) {
-            webapp.HapticFeedback.impactOccurred('medium');
+            webapp.HapticFeedback.notificationOccurred('success');
             const data = JSON.stringify({ action: action, plan: plan });
-            // This is the specific command that sends data back to your app.py
             webapp.sendData(data);
-            webapp.close(); // Closes the app after selection to show the result in chat
+            // The app will close automatically here to process the data in Telegram
         }
     </script>
 </body>
