@@ -7,9 +7,9 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, LabeledPri
 
 app = Flask(__name__)
 
-# CONFIGURATION
+# CONFIGURATION - Pulls from Render Environment Variables
 TOKEN = os.environ.get('TOKEN')
-ADMIN_ID = os.environ.get('ADMIN_ID') # Ensure this is your ID in Render Env Vars
+ADMIN_ID = os.environ.get('ADMIN_ID') 
 MINI_APP_URL = "https://drmindeye.github.io/mindeye-telegram-bot/" 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
@@ -19,7 +19,7 @@ def get_db():
     conn = sqlite3.connect('subscribers.db', check_same_thread=False)
     return conn
 
-# Database Initialization
+# Initialize Database
 with get_db() as conn:
     conn.execute('''CREATE TABLE IF NOT EXISTS users 
                   (user_id INTEGER PRIMARY KEY, plan TEXT DEFAULT 'free')''')
@@ -28,24 +28,34 @@ with get_db() as conn:
 def start(message):
     markup = InlineKeyboardMarkup()
     markup.add(InlineKeyboardButton("🚀 Open MindEye Analyst", web_app=WebAppInfo(url=MINI_APP_URL)))
-    bot.send_message(message.chat.id, "<b>Welcome to MindEye AI Analyst!</b>\n\nUse the button below to access signals and trading bots.", parse_mode="HTML", reply_markup=markup)
+    bot.send_message(message.chat.id, "<b>Welcome to MindEye AI Analyst!</b>\n\nYour terminal for institutional grade signals.", parse_mode="HTML", reply_markup=markup)
 
-# ADMIN SIGNAL BROADCASTING
+# --- ADMIN SIGNAL BROADCASTING ---
 @bot.message_handler(commands=['send'])
 def admin_broadcast_start(message):
     if str(message.from_user.id) != str(ADMIN_ID):
         return
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("Free Users", callback_data='send_free'), InlineKeyboardButton("Pro Users", callback_data='send_pro'))
+    markup.add(InlineKeyboardButton("Free (1 Pair)", callback_data='send_free'))
+    markup.add(InlineKeyboardButton("Pro (3 Pairs)", callback_data='send_pro'))
+    markup.add(InlineKeyboardButton("Premium (6 Pairs)", callback_data='send_premium'))
     markup.add(InlineKeyboardButton("All Users", callback_data='send_all'))
-    bot.reply_to(message, "Who do you want to send a signal to?", reply_markup=markup)
+    bot.reply_to(message, "📢 <b>New Signal Broadcast</b>\nSelect target group:", parse_mode="HTML", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('send_'))
 def set_broadcast_target(call):
     target = call.data.split('_')[1]
     admin_states[call.from_user.id] = target
     bot.answer_callback_query(call.id)
-    bot.send_message(call.message.chat.id, f"Target set to: {target.upper()}. Now send the signal message (text, image, or chart):")
+    
+    details = {
+        'free': "FREE (2-3 signals/week)",
+        'pro': "PRO (3-7 signals/week)",
+        'premium': "PREMIUM (7-12 signals/week)",
+        'all': "ALL SUBSCRIBERS"
+    }
+    
+    bot.send_message(call.message.chat.id, f"🎯 Target: <b>{details[target]}</b>\n\nSend the signal (Text, Photo, or Chart) now:", parse_mode="HTML")
 
 @bot.message_handler(func=lambda m: m.from_user.id in admin_states)
 def perform_broadcast(message):
@@ -65,9 +75,9 @@ def perform_broadcast(message):
             count += 1
         except:
             continue
-    bot.reply_to(message, f"✅ Broadcast complete. Signal sent to {count} users.")
+    bot.reply_to(message, f"✅ Signal successfully sent to {count} users.")
 
-# MINI APP INTERACTION
+# --- MINI APP DATA HANDLING ---
 @bot.message_handler(content_types=['web_app_data'])
 def handle_app_data(message):
     data = json.loads(message.web_app_data.data)
@@ -76,7 +86,7 @@ def handle_app_data(message):
     if data['action'] == 'subscribe':
         with get_db() as conn:
             conn.execute("INSERT OR REPLACE INTO users (user_id, plan) VALUES (?, ?)", (user_id, 'free'))
-        bot.send_message(user_id, "📈 <b>Success!</b> You are now registered for Free Signals.", parse_mode="HTML")
+        bot.send_message(user_id, "📈 <b>Success!</b>\nYou are registered for the 1-Month Free Plan (2-3 signals/week).", parse_mode="HTML")
 
     elif data['action'] == 'buy_stars':
         prices = {'pro': 1499, 'premium': 2999} 
@@ -87,7 +97,7 @@ def handle_app_data(message):
             payload=f"plan_{data['plan']}",
             provider_token="", 
             currency="XTR",
-            prices=[LabeledPrice(label="Subscription", amount=prices[data['plan']])]
+            prices=[LabeledPrice(label="Monthly Subscription", amount=prices[data['plan']])]
         )
 
 @bot.pre_checkout_query_handler(func=lambda query: True)
@@ -99,8 +109,9 @@ def payment_success(message):
     plan = message.successful_payment.invoice_payload.split('_')[1]
     with get_db() as conn:
         conn.execute("UPDATE users SET plan = ? WHERE user_id = ?", (plan, message.chat.id))
-    bot.send_message(message.chat.id, f"🌟 <b>Payment Received!</b>\nWelcome to the {plan.upper()} group.", parse_mode="HTML")
+    bot.send_message(message.chat.id, f"🌟 <b>Payment Confirmed!</b>\nWelcome to the {plan.upper()} group. You will now receive high-frequency signals.", parse_mode="HTML")
 
+# --- WEBHOOK ROUTE ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
