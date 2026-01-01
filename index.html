@@ -28,13 +28,13 @@
             overflow-x: hidden;
         }
 
-        /* Animated Fintech Background Overlay */
+        /* Animated Fintech Glow */
         body::before {
             content: "";
             position: fixed;
             top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle at center, rgba(41, 98, 255, 0.05) 0%, transparent 50%);
-            animation: rotateBg 30s linear infinite;
+            background: radial-gradient(circle at center, rgba(41, 98, 255, 0.07) 0%, transparent 50%);
+            animation: rotateBg 20s linear infinite;
             z-index: -1;
         }
 
@@ -47,7 +47,6 @@
             max-width: 480px;
             margin: auto;
             padding: 20px;
-            padding-top: 10px;
         }
 
         .header {
@@ -57,53 +56,53 @@
         }
 
         .logo {
-            width: 90px;
-            height: 90px;
+            width: 100px;
+            height: 100px;
             border-radius: 50%;
-            margin-bottom: 12px;
+            margin-bottom: 15px;
             border: 2px solid var(--tv-blue);
-            box-shadow: 0 0 20px rgba(41, 98, 255, 0.4);
+            box-shadow: 0 0 25px rgba(41, 98, 255, 0.5);
             object-fit: cover;
         }
 
         h1 {
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            letter-spacing: 1.5px;
+            letter-spacing: 2px;
             margin: 0;
-            background: linear-gradient(to right, #ffffff, #9da7b1);
+            background: linear-gradient(to right, #ffffff, var(--tv-blue));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         .card {
             background: var(--glass);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
             border: 1px solid var(--border);
-            border-radius: 24px;
-            padding: 20px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            animation: fadeUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+            border-radius: 28px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            animation: fadeUp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         @keyframes fadeUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         @keyframes fadeInDown {
-            from { opacity: 0; transform: translateY(-10px); }
+            from { opacity: 0; transform: translateY(-20px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
-            margin-bottom: 14px;
-            border-radius: 16px;
-            font-size: 15px;
-            font-weight: 600;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: 18px;
+            font-size: 16px;
+            font-weight: 700;
             text-align: center;
             cursor: pointer;
             border: none;
@@ -111,46 +110,37 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
         }
 
         .btn-primary {
             background: var(--tv-blue);
             color: #ffffff;
-            box-shadow: 0 4px 15px rgba(41, 98, 255, 0.3);
+            box-shadow: 0 4px 20px rgba(41, 98, 255, 0.4);
         }
 
-        .btn-primary:active { transform: scale(0.96); background: var(--tv-blue-hover); }
+        .btn-primary:active { transform: scale(0.95); background: var(--tv-blue-hover); }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.07);
+            background: rgba(255, 255, 255, 0.08);
             color: #ffffff;
             border: 1px solid var(--border);
         }
 
-        .btn-secondary:active { transform: scale(0.96); background: rgba(255, 255, 255, 0.12); }
+        .btn-secondary:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.15); }
 
         .screen { display: none; }
         #home { display: block; }
 
-        h2 { text-align: center; margin-top: 0; font-size: 1.2rem; color: var(--tv-blue); }
-        p { text-align: center; color: #9da7b1; line-height: 1.6; font-size: 0.95rem; }
-
-        .badge {
-            font-size: 10px;
-            background: #ff4a4a;
-            padding: 2px 8px;
-            border-radius: 10px;
-            margin-left: 5px;
-            text-transform: uppercase;
-        }
+        h2 { text-align: center; margin-top: 0; font-size: 1.3rem; color: var(--tv-blue); }
+        p { text-align: center; color: #b0b8c1; line-height: 1.7; }
     </style>
 </head>
 
 <body>
 <div class="container">
     <div class="header">
-        <img class="logo" src="logo.png" alt="MindEye Logo" onerror="this.src='https://via.placeholder.com/150'">
+        <img class="logo" src="logo.png" alt="MindEye Logo">
         <h1>MINDEYE AI</h1>
     </div>
 
@@ -164,29 +154,23 @@
     </div>
 
     <div id="signals" class="card screen">
-        <h2>Signal Plans</h2>
-        <div class="btn btn-secondary" onclick="sendAction('subscribe', 'free')">🆓 Free Access</div>
-        <div class="btn btn-primary" onclick="sendAction('buy_stars', 'pro')">💼 Pro Plan <span class="badge">Popular</span></div>
-        <div class="btn btn-primary" onclick="sendAction('buy_stars', 'premium')">👑 Premium Plan</div>
-        <div class="btn btn-secondary" onclick="home()">⬅ Back to Dashboard</div>
-    </div>
-
-    <div id="mentorship" class="card screen">
-        <h2>Mentorship</h2>
-        <p>Master the markets with our professional coaching program.</p>
-        <div class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">Join Private Channel</div>
+        <h2>Trading Signals</h2>
+        <div class="btn btn-secondary" onclick="sendAction('subscribe', 'free')">🆓 Free Signals</div>
+        <div class="btn btn-primary" onclick="sendAction('buy_stars', 'pro')">💼 Pro Plan ($14.99)</div>
+        <div class="btn btn-primary" onclick="sendAction('buy_stars', 'premium')">👑 Premium Plan ($29.99)</div>
         <div class="btn btn-secondary" onclick="home()">⬅ Back</div>
     </div>
 
-    <div id="account" class="card screen">
-        <h2>Account Management</h2>
-        <p>We manage, you earn. Professional capital management services.</p>
-        <div class="btn btn-primary" onclick="tg('https://t.me/drmindeye')">Contact Fund Manager</div>
+    <div id="mentorship" class="card screen">
+        <h2>Mastery Mentorship</h2>
+        <p>Expert coaching to turn you into a profitable institutional trader.</p>
+        <div class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">Join Community</div>
         <div class="btn btn-secondary" onclick="home()">⬅ Back</div>
     </div>
 
     <div id="bot" class="card screen">
-        <h2>AI Trading Bots</h2>
+        <h2>MindEye AI Bots</h2>
+        <p>Automated high-frequency trading bots for Gold and Forex.</p>
         <div class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</div>
         <div class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get XAUUSD Bot</div>
         <div class="btn btn-secondary" onclick="home()">⬅ Back</div>
@@ -198,15 +182,12 @@
     const webapp = window.Telegram.WebApp;
     webapp.ready();
     webapp.expand();
-    webapp.enableClosingConfirmation();
-
-    // Set Header color to match the theme
     webapp.setHeaderColor('#0d1117');
 
     function show(id) {
         document.querySelectorAll('.screen,#home').forEach(e => e.style.display='none');
         document.getElementById(id).style.display='block';
-        webapp.HapticFeedback.impactOccurred('medium');
+        webapp.HapticFeedback.notificationOccurred('success');
     }
 
     function home() {
