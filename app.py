@@ -8,8 +8,8 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, LabeledPri
 app = Flask(__name__)
 
 # REPLACE WITH YOUR ACTUAL DATA
-TOKEN = os.environ.get('TOKEN')
-ADMIN_ID = int(os.environ.get('ADMIN_ID', 0))
+TOKEN = os.environ.get('8474378531:AAFDxtqbXZtz-bq6XAX67Pu5h-5JmGYfYzI')
+ADMIN_ID = int(os.environ.get('637924570', 0))
 # Your actual GitHub Pages URL
 MINI_APP_URL = "https://drmindeye.github.io/mindeye-telegram-bot/" 
 
