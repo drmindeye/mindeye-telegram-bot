@@ -32,7 +32,7 @@ def start(message):
     welcome_text = (
         "<b>Welcome to MindEye AI Analyst!</b> 🚀\n\n"
         "To access our trading signals, mentorship, and AI bots, "
-        "please click the <b>'Signals'</b> button located at the bottom left "
+        "please click the <b>'MINDEYE AI'</b> button located at the bottom left "
         "of your screen (next to the keyboard).\n\n"
         "<i>Note: Opening the app via the 'MINDEYE AI' menu button ensures all features work correctly.</i>"
     )
