@@ -7,27 +7,25 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     <style>
-        /* Updated to Army Green and Professional Charcoal Grey */
         :root { 
-            --army-green: #4B5320; 
-            --prof-grey: #36454F;
+            --mindeye-green: #1B3022; /* Institutional Deep Green */
+            --mindeye-grey: #2F2F2F;  /* Professional Slate Grey */
             --glass: rgba(255, 255, 255, 0.05); 
             --border: rgba(255, 255, 255, 0.1); 
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: 'Inter', sans-serif; color: #fff; background: #0d1117; min-height: 100vh; }
+        body { margin: 0; font-family: 'Inter', sans-serif; color: #fff; background: #0d1117; min-height: 100vh; overflow-x: hidden; }
         .container { padding: 20px; max-width: 450px; margin: auto; }
         .card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 24px; text-align: center; }
-        .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--army-green); margin-bottom: 15px; }
-        h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
-        p { font-size: 0.9rem; color: #aaa; line-height: 1.4; margin-bottom: 20px; }
+        .logo { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--mindeye-green); margin-bottom: 15px; }
         
         /* Button Styles */
-        .btn { width: 100%; padding: 16px; margin: 8px 0; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
-        .btn-primary { background: var(--army-green); }
-        .btn-secondary { background: var(--prof-grey); }
+        .btn { width: 100%; padding: 16px; margin: 10px 0; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        .btn-major { background: var(--mindeye-green); box-shadow: 0 4px 15px rgba(27, 48, 34, 0.3); }
+        .btn-minor { background: var(--mindeye-grey); }
+        .btn:active { transform: scale(0.97); opacity: 0.9; }
         
-        .plan-info { font-size: 0.75rem; color: #888; margin-top: -5px; margin-bottom: 12px; display: block; }
+        .plan-info { font-size: 0.75rem; color: #888; display: block; margin-top: -6px; margin-bottom: 12px; }
         .screen { display: none; }
         #home { display: block; }
     </style>
@@ -37,53 +35,26 @@
         <div id="home" class="card">
             <img src="logo.png" class="logo">
             <h2>MINDEYE AI ANALYST</h2>
-            <button class="btn btn-primary" onclick="show('signals')">📊 Signals & Analysis</button>
-            <button class="btn btn-secondary" onclick="show('mentorship')">🎓 Mentorship</button>
-            <button class="btn btn-primary" onclick="show('account')">🤝 Account Management</button>
-            <button class="btn btn-secondary" onclick="show('bots')">🤖 Bot Trading</button>
-            <button class="btn btn-primary" onclick="show('results')">📈 Results</button>
-            <button class="btn btn-secondary" onclick="tg('https://t.me/mindeyesupport')">💬 Support</button>
+            <button class="btn btn-major" onclick="show('signals')">📊 Signals & Analysis</button>
+            <button class="btn btn-minor" onclick="show('mentorship')">🎓 Mentorship</button>
+            <button class="btn btn-major" onclick="show('account')">🤝 Account Management</button>
+            <button class="btn btn-minor" onclick="show('bots')">🤖 Bot Trading</button>
+            <button class="btn btn-major" onclick="show('results')">📈 Results</button>
+            <button class="btn btn-minor" onclick="tg('https://t.me/mindeyesupport')">💬 Support</button>
         </div>
 
         <div id="signals" class="card screen">
-            <h2>Trading Plans</h2>
-            <button class="btn btn-secondary" onclick="sendAction('subscribe', 'free')">🆓 Free Plan (1 Month)</button>
+            <h2>Select Your Plan</h2>
+            <button class="btn btn-minor" onclick="sendAction('subscribe', 'free')">🆓 Free Plan (1 Month)</button>
             <span class="plan-info">2-3 signals/week • 1 Pair</span>
-            <button class="btn btn-primary" onclick="sendAction('buy_stars', 'pro')">💼 Pro Plan ($14.99/mo)</button>
+
+            <button class="btn btn-major" onclick="sendAction('buy', 'pro')">💼 Pro Plan ($14.99/mo)</button>
             <span class="plan-info">3-7 signals/week • 3 Pairs</span>
-            <button class="btn btn-primary" onclick="sendAction('buy_stars', 'premium')">👑 Premium Plan ($29.99/mo)</button>
+
+            <button class="btn btn-major" onclick="sendAction('buy', 'premium')">👑 Premium Plan ($29.99/mo)</button>
             <span class="plan-info">7-12 signals/week • 6 Pairs</span>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
-
-        <div id="results" class="card screen">
-            <h2>Performance Results</h2>
-            <p>Transparency is our core value. View our verified track record for signals and bots.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📊 Signal Analysis Results</button>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">🤖 Bot Results</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
-
-        <div id="account" class="card screen">
-            <h2>Account Management</h2>
-            <p>Professional fund management for busy traders. We handle the technicals while you monitor the growth.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">👤 Contact Account Manager</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
-
-        <div id="mentorship" class="card screen">
-            <h2>Mentorship Program</h2>
-            <p>Learn the institutional strategies behind MindEye. Master price action, liquidity, and risk management.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📢 Join Channel for Updates</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
-
-        <div id="bots" class="card screen">
-            <h2>AI Trading Bots</h2>
-            <p>Our proprietary algorithms scan the market 24/7. High-frequency execution with strict stop-loss protocols.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</button>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get XAUUSD Bot</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
+            
+            <button class="btn btn-minor" style="margin-top:20px;" onclick="show('home')">⬅ Back to Menu</button>
         </div>
     </div>
 
@@ -102,7 +73,9 @@
 
         function sendAction(action, plan) {
             webapp.HapticFeedback.notificationOccurred('success');
-            webapp.sendData(JSON.stringify({ "action": action, "plan": plan }));
+            // This line sends the signal back to your app.py
+            const data = JSON.stringify({ "action": action, "plan": plan });
+            webapp.sendData(data);
         }
     </script>
 </body>
