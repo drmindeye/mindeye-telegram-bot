@@ -8,33 +8,36 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     <style>
         :root { 
-            --mindeye-green: #1B3022; /* Institutional Deep Green */
-            --mindeye-grey: #2F2F2F;  /* Professional Slate Grey */
+            --mindeye-green: #1B3022; /* Forest Green from logo */
+            --mindeye-grey: #2F2F2F;  /* Slate Grey from logo */
             --glass: rgba(255, 255, 255, 0.05); 
             --border: rgba(255, 255, 255, 0.1); 
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: 'Inter', sans-serif; color: #fff; background: #0d1117; min-height: 100vh; overflow-x: hidden; }
+        body { margin: 0; font-family: 'Inter', sans-serif; color: #fff; background: #0d1117; min-height: 100vh; }
         .container { padding: 20px; max-width: 450px; margin: auto; }
         .card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 24px; text-align: center; }
-        .logo { width: 90px; height: 90px; border-radius: 50%; border: 2px solid var(--mindeye-green); margin-bottom: 15px; }
+        .logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--mindeye-green); margin-bottom: 20px; }
+        h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 8px; text-transform: uppercase; }
+        p { font-size: 0.9rem; color: #ccc; line-height: 1.5; margin-bottom: 25px; }
         
-        /* Button Styles */
-        .btn { width: 100%; padding: 16px; margin: 10px 0; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
-        .btn-major { background: var(--mindeye-green); box-shadow: 0 4px 15px rgba(27, 48, 34, 0.3); }
+        /* Buttons */
+        .btn { width: 100%; padding: 18px; margin: 10px 0; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        .btn-major { background: var(--mindeye-green); box-shadow: 0 4px 15px rgba(27, 48, 34, 0.4); }
         .btn-minor { background: var(--mindeye-grey); }
-        .btn:active { transform: scale(0.97); opacity: 0.9; }
+        .btn-major:active, .btn-minor:active { transform: scale(0.98); opacity: 0.9; }
         
-        .plan-info { font-size: 0.75rem; color: #888; display: block; margin-top: -6px; margin-bottom: 12px; }
-        .screen { display: none; }
+        .plan-info { font-size: 0.8rem; color: #999; margin-top: -6px; margin-bottom: 15px; display: block; font-style: italic; }
+        .screen { display: none; animation: fadeIn 0.4s ease-out; }
         #home { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="home" class="card">
             <img src="logo.png" class="logo">
-            <h2>MINDEYE AI ANALYST</h2>
+            <h2>MindEye AI Analyst</h2>
             <button class="btn btn-major" onclick="show('signals')">📊 Signals & Analysis</button>
             <button class="btn btn-minor" onclick="show('mentorship')">🎓 Mentorship</button>
             <button class="btn btn-major" onclick="show('account')">🤝 Account Management</button>
@@ -65,7 +68,8 @@
 
         function show(id) {
             document.querySelectorAll('.screen, #home').forEach(e => e.style.display = 'none');
-            document.getElementById(id).style.display = 'block';
+            const el = document.getElementById(id);
+            if(el) el.style.display = 'block';
             webapp.HapticFeedback.impactOccurred('medium');
         }
 
@@ -73,9 +77,8 @@
 
         function sendAction(action, plan) {
             webapp.HapticFeedback.notificationOccurred('success');
-            // This line sends the signal back to your app.py
-            const data = JSON.stringify({ "action": action, "plan": plan });
-            webapp.sendData(data);
+            // sendData only works if the app is opened via the Menu Button
+            webapp.sendData(JSON.stringify({ "action": action, "plan": plan }));
         }
     </script>
 </body>
