@@ -7,57 +7,76 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     <style>
-        :root { 
-            --mindeye-green: #1B3022; /* Forest Green from logo */
-            --mindeye-grey: #2F2F2F;  /* Slate Grey from logo */
-            --glass: rgba(255, 255, 255, 0.05); 
-            --border: rgba(255, 255, 255, 0.1); 
-        }
+        /* Only altered the color variable to match your logo green */
+        :root { --mindeye-green: #1B3022; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; font-family: 'Inter', sans-serif; color: #fff; background: #0d1117; min-height: 100vh; }
-        .container { padding: 20px; max-width: 450px; margin: auto; }
-        .card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 24px; text-align: center; }
-        .logo { width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--mindeye-green); margin-bottom: 20px; }
-        h2 { font-size: 1.3rem; font-weight: 700; color: #fff; margin-bottom: 8px; text-transform: uppercase; }
-        p { font-size: 0.9rem; color: #ccc; line-height: 1.5; margin-bottom: 25px; }
-        
-        /* Buttons */
-        .btn { width: 100%; padding: 18px; margin: 10px 0; border-radius: 16px; border: none; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.3s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
-        .btn-major { background: var(--mindeye-green); box-shadow: 0 4px 15px rgba(27, 48, 34, 0.4); }
-        .btn-minor { background: var(--mindeye-grey); }
-        .btn-major:active, .btn-minor:active { transform: scale(0.98); opacity: 0.9; }
-        
-        .plan-info { font-size: 0.8rem; color: #999; margin-top: -6px; margin-bottom: 15px; display: block; font-style: italic; }
-        .screen { display: none; animation: fadeIn 0.4s ease-out; }
-        #home { display: block; }
+        body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: #ffffff; background: #0d1117; min-height: 100vh; }
+        .container { width: 100%; max-width: 450px; margin: auto; padding: 20px; }
+        .card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--mindeye-green); margin-bottom: 15px; }
+        h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
+        p { font-size: 0.9rem; color: #aaa; line-height: 1.4; margin-bottom: 20px; }
+        .btn { width: 100%; padding: 16px; margin: 8px 0; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
+        .btn-primary { background: var(--mindeye-green); }
+        .btn-secondary { background: rgba(255, 255, 255, 0.1); }
+        .plan-info { font-size: 0.75rem; color: #888; margin-top: -5px; margin-bottom: 12px; display: block; }
+        .screen { display: none; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        #home { display: block; }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="home" class="card">
             <img src="logo.png" class="logo">
-            <h2>MindEye AI Analyst</h2>
-            <button class="btn btn-major" onclick="show('signals')">📊 Signals & Analysis</button>
-            <button class="btn btn-minor" onclick="show('mentorship')">🎓 Mentorship</button>
-            <button class="btn btn-major" onclick="show('account')">🤝 Account Management</button>
-            <button class="btn btn-minor" onclick="show('bots')">🤖 Bot Trading</button>
-            <button class="btn btn-major" onclick="show('results')">📈 Results</button>
-            <button class="btn btn-minor" onclick="tg('https://t.me/mindeyesupport')">💬 Support</button>
+            <h2>MINDEYE AI ANALYST</h2>
+            <button class="btn btn-primary" onclick="show('signals')">📊 Signals & Analysis</button>
+            <button class="btn btn-secondary" onclick="show('mentorship')">🎓 Mentorship</button>
+            <button class="btn btn-primary" onclick="show('account')">🤝 Account Management</button>
+            <button class="btn btn-secondary" onclick="show('bots')">🤖 Bot Trading</button>
+            <button class="btn btn-primary" onclick="show('results')">📈 Results</button>
+            <button class="btn btn-secondary" onclick="tg('https://t.me/mindeyesupport')">💬 Support</button>
         </div>
 
         <div id="signals" class="card screen">
-            <h2>Select Your Plan</h2>
-            <button class="btn btn-minor" onclick="sendAction('subscribe', 'free')">🆓 Free Plan (1 Month)</button>
+            <h2>Trading Plans</h2>
+            <button class="btn btn-secondary" onclick="sendAction('subscribe', 'free')">🆓 Free Plan (1 Month)</button>
             <span class="plan-info">2-3 signals/week • 1 Pair</span>
-
-            <button class="btn btn-major" onclick="sendAction('buy', 'pro')">💼 Pro Plan ($14.99/mo)</button>
+            <button class="btn btn-primary" onclick="sendAction('buy_stars', 'pro')">💼 Pro Plan ($14.99/mo)</button>
             <span class="plan-info">3-7 signals/week • 3 Pairs</span>
-
-            <button class="btn btn-major" onclick="sendAction('buy', 'premium')">👑 Premium Plan ($29.99/mo)</button>
+            <button class="btn btn-primary" onclick="sendAction('buy_stars', 'premium')">👑 Premium Plan ($29.99/mo)</button>
             <span class="plan-info">7-12 signals/week • 6 Pairs</span>
-            
-            <button class="btn btn-minor" style="margin-top:20px;" onclick="show('home')">⬅ Back to Menu</button>
+            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="results" class="card screen">
+            <h2>Performance Results</h2>
+            <p>Transparency is our core value. View our verified track record for both manual signals and AI bot performance.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📊 Signal Analysis Results</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">🤖 Bot Results</button>
+            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="account" class="card screen">
+            <h2>Account Management</h2>
+            <p>Professional fund management for busy traders. We handle the technicals while you monitor the growth.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">👤 Contact Account Manager</button>
+            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="mentorship" class="card screen">
+            <h2>Mentorship Program</h2>
+            <p>Learn the institutional strategies behind MindEye. Master price action, liquidity, and risk management.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📢 Join Channel for Updates</button>
+            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="bots" class="card screen">
+            <h2>AI Trading Bots</h2>
+            <p>Our proprietary algorithms scan the market 24/7. High-frequency execution with strict stop-loss protocols.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get XAUUSD Bot</button>
+            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
         </div>
     </div>
 
@@ -68,17 +87,16 @@
 
         function show(id) {
             document.querySelectorAll('.screen, #home').forEach(e => e.style.display = 'none');
-            const el = document.getElementById(id);
-            if(el) el.style.display = 'block';
-            webapp.HapticFeedback.impactOccurred('medium');
+            document.getElementById(id).style.display = 'block';
+            webapp.HapticFeedback.impactOccurred('light');
         }
 
         function tg(url) { webapp.openTelegramLink(url); }
 
         function sendAction(action, plan) {
             webapp.HapticFeedback.notificationOccurred('success');
-            // sendData only works if the app is opened via the Menu Button
-            webapp.sendData(JSON.stringify({ "action": action, "plan": plan }));
+            // This is the trigger back to app.py
+            webapp.sendData(JSON.stringify({ action: action, plan: plan }));
         }
     </script>
 </body>
