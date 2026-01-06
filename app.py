@@ -38,13 +38,13 @@ def start(message):
 
 @bot.message_handler(commands=['id'])
 def get_user_id(message):
-    """Separate command for users to get their ID for manual payments"""
+    """Gives the user their numerical ID in a copy-paste format"""
     user_id = message.from_user.id
     response = (
         f"🆔 <b>Your MindEye ID:</b>\n\n"
         f"<code>{user_id}</code>\n\n"
         f"<i>(Tap the number above to copy it)</i>\n"
-        f"Please provide this ID to support for manual onboarding."
+        f"Provide this ID to support for manual plan activation."
     )
     bot.send_message(message.chat.id, response, parse_mode="HTML")
 
