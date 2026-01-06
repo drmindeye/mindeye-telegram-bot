@@ -7,11 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
     <style>
-        :root { 
-            --mindeye-green: #1B3022; 
-            --glass: rgba(255, 255, 255, 0.05); 
-            --border: rgba(255, 255, 255, 0.1); 
-        }
+        :root { --mindeye-green: #1B3022; --glass: rgba(255, 255, 255, 0.05); --border: rgba(255, 255, 255, 0.1); }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: #ffffff; background: #0d1117; min-height: 100vh; }
         .container { width: 100%; max-width: 450px; margin: auto; padding: 20px; }
@@ -22,7 +18,6 @@
         .btn { width: 100%; padding: 16px; margin: 8px 0; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
         .btn-primary { background: var(--mindeye-green); }
         .btn-secondary { background: rgba(255, 255, 255, 0.1); }
-        .btn:active { transform: scale(0.98); opacity: 0.9; }
         .plan-info { font-size: 0.75rem; color: #888; margin-top: -5px; margin-bottom: 12px; display: block; }
         .screen { display: none; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -46,61 +41,31 @@
             <h2>Trading Plans</h2>
             <button class="btn btn-secondary" onclick="sendAction('subscribe', 'free')">🆓 Free Plan (1 Month)</button>
             <span class="plan-info">2-3 signals/week • 1 Pair</span>
-
             <button class="btn btn-primary" onclick="showPaymentOptions('pro', '14.99')">💼 Pro Plan ($14.99/mo)</button>
             <span class="plan-info">3-7 signals/week • 3 Pairs</span>
-
             <button class="btn btn-primary" onclick="showPaymentOptions('premium', '29.99')">👑 Premium Plan ($29.99/mo)</button>
             <span class="plan-info">7-12 signals/week • 6 Pairs</span>
-            
             <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
         </div>
 
         <div id="payment_options" class="card screen">
             <h2 id="option_title">Payment Options</h2>
-            <p>Select your preferred method:</p>
+            <p>Choose your method:</p>
             <button class="btn btn-primary" id="stars_btn">📱 Telegram Stars</button>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">💳 Crypto or Fiat (Contact Support)</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">💳 Crypto or Fiat (Manual)</button>
             <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('signals')">⬅ Back</button>
         </div>
 
-        <div id="results" class="card screen">
-            <h2>Performance Results</h2>
-            <p>Transparency is our core value. View our verified track record.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📊 Signal Results</button>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">🤖 Bot Results</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
-
-        <div id="account" class="card screen">
-            <h2>Account Management</h2>
-            <p>Professional fund management for busy traders.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">👤 Contact Manager</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
-
-        <div id="mentorship" class="card screen">
-            <h2>Mentorship Program</h2>
-            <p>Learn institutional strategies and risk management.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📢 Join Channel</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
-
-        <div id="bots" class="card screen">
-            <h2>AI Trading Bots</h2>
-            <p>Proprietary algorithms scanning the market 24/7.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</button>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get XAUUSD Bot</button>
-            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
-        </div>
+        <div id="results" class="card screen"><h2>Results</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
+        <div id="account" class="card screen"><h2>Account</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
+        <div id="mentorship" class="card screen"><h2>Mentorship</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
+        <div id="bots" class="card screen"><h2>Bots</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
     </div>
 
     <script>
         const webapp = window.Telegram.WebApp;
         webapp.ready();
         webapp.expand();
-
-        let selectedPlan = '';
 
         function show(id) {
             document.querySelectorAll('.screen, #home').forEach(e => e.style.display = 'none');
@@ -109,9 +74,7 @@
         }
 
         function showPaymentOptions(plan, price) {
-            selectedPlan = plan;
             document.getElementById('option_title').innerText = plan.toUpperCase() + " - $" + price;
-            // Configures the Stars button for the chosen plan
             document.getElementById('stars_btn').onclick = () => sendAction('buy_stars', plan);
             show('payment_options');
         }
