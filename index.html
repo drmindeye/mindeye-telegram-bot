@@ -27,7 +27,7 @@
 <body>
     <div class="container">
         <div id="home" class="card">
-            <img src="logo.png" class="logo">
+            <img src="logo.png" class="logo" alt="Logo">
             <h2>MINDEYE AI ANALYST</h2>
             <button class="btn btn-primary" onclick="show('signals')">📊 Signals & Analysis</button>
             <button class="btn btn-secondary" onclick="show('mentorship')">🎓 Mentorship</button>
@@ -56,10 +56,33 @@
             <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('signals')">⬅ Back</button>
         </div>
 
-        <div id="results" class="card screen"><h2>Results</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
-        <div id="account" class="card screen"><h2>Account</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
-        <div id="mentorship" class="card screen"><h2>Mentorship</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
-        <div id="bots" class="card screen"><h2>Bots</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
+        <div id="mentorship" class="card screen">
+            <h2>Mentorship</h2>
+            <p>Master institutional trading with our 1-on-1 programs.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">View Curriculum</button>
+            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="account" class="card screen">
+            <h2>Account Management</h2>
+            <p>Let our professionals manage your capital with advanced risk control.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Talk to Manager</button>
+            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="bots" class="card screen">
+            <h2>AI Trading Bots</h2>
+            <p>Automate your profit with our proprietary AI algorithms.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</button>
+            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="results" class="card screen">
+            <h2>Our Results</h2>
+            <p>Track our performance across all signals and bots.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">Verified Track Record</button>
+            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+        </div>
     </div>
 
     <script>
@@ -83,7 +106,9 @@
 
         function sendAction(action, plan) {
             webapp.HapticFeedback.notificationOccurred('success');
+            // This is the CRITICAL part - it sends data to the bot
             webapp.sendData(JSON.stringify({ action: action, plan: plan }));
+            webapp.close(); // Closes app so user sees the bot message
         }
     </script>
 </body>
