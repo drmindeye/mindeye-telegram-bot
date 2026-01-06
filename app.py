@@ -6,15 +6,11 @@ import os
 import threading
 import time
 from datetime import datetime, timedelta
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, LabeledPrice
+from telebot.types import LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton
 
 app = Flask(__name__)
-
-# --- CONFIGURATION ---
 TOKEN = os.environ.get('TOKEN')
 ADMIN_ID = os.environ.get('ADMIN_ID')
-# IMPORTANT: For Telegram Stars, this MUST be an empty string ""
-PAYMENT_TOKEN = "" 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
 admin_states = {}
@@ -23,139 +19,83 @@ def get_db():
     conn = sqlite3.connect('subscribers.db', check_same_thread=False)
     return conn
 
-# Initialize Database
 with get_db() as conn:
-    conn.execute('''CREATE TABLE IF NOT EXISTS users 
-                  (user_id INTEGER PRIMARY KEY, 
-                   plan TEXT DEFAULT 'free', 
-                   expiry_date TEXT)''')
+    conn.execute('''CREATE TABLE IF NOT EXISTS users (user_id INTEGER PRIMARY KEY, plan TEXT, expiry TEXT)''')
 
-# --- BACKGROUND TASK: DEACTIVATION ---
-def check_expirations():
+# --- AUTO DEACTIVATION TASK ---
+def cleanup_task():
     while True:
         try:
-            now = datetime.now()
+            now = datetime.now().isoformat()
             with get_db() as conn:
                 cursor = conn.cursor()
-                cursor.execute("SELECT user_id FROM users WHERE expiry_date < ? AND plan != 'expired'", (now.isoformat(),))
-                expired_users = cursor.fetchall()
-                for (u_id,) in expired_users:
-                    conn.execute("UPDATE users SET plan = 'expired' WHERE user_id = ?", (u_id,))
-                    try:
-                        bot.send_message(u_id, "⚠️ <b>Subscription Expired</b>\nYour access has ended. Visit the Mini App to renew!")
-                    except: pass
+                cursor.execute("SELECT user_id FROM users WHERE expiry < ? AND plan != 'expired'", (now,))
+                expired = cursor.fetchall()
+                for (uid,) in expired:
+                    conn.execute("UPDATE users SET plan = 'expired' WHERE user_id = ?", (uid,))
+                    bot.send_message(uid, "⚠️ Your subscription has expired!")
                 conn.commit()
         except: pass
         time.sleep(86400)
 
-threading.Thread(target=check_expirations, daemon=True).start()
+threading.Thread(target=cleanup_task, daemon=True).start()
 
-# --- 1. USER COMMANDS ---
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, "<b>Welcome to MindEye AI!</b> 🚀\nUse the menu button to open the app.", parse_mode="HTML")
-
-@bot.message_handler(commands=['id'])
-def get_id(m):
-    bot.reply_to(m, f"🆔 Your ID: <code>{m.from_user.id}</code>", parse_mode="HTML")
-
-# --- 2. ADMIN COMMANDS ---
-@bot.message_handler(commands=['upgrade'])
-def manual_upgrade(m):
-    if str(m.from_user.id) != str(ADMIN_ID): return
-    try:
-        args = m.text.split()
-        user_id, plan = args[1], args[2]
-        expiry = (datetime.now() + timedelta(days=30)).isoformat()
-        with get_db() as conn:
-            conn.execute("INSERT OR REPLACE INTO users (user_id, plan, expiry_date) VALUES (?, ?, ?)", (user_id, plan, expiry))
-        bot.send_message(m.chat.id, f"✅ Upgraded {user_id} to {plan}.")
-        bot.send_message(user_id, f"🌟 Membership Activated for 30 days!")
-    except:
-        bot.reply_to(m, "Usage: /upgrade [ID] [pro/premium]")
-
-@bot.message_handler(commands=['send'])
-def admin_broadcast_start(message):
-    if str(message.from_user.id) != str(ADMIN_ID): return
-    markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("Free", callback_data='send_free'), 
-               InlineKeyboardButton("Pro", callback_data='send_pro'))
-    markup.add(InlineKeyboardButton("Premium", callback_data='send_premium'), 
-               InlineKeyboardButton("All", callback_data='send_all'))
-    bot.reply_to(message, "📢 Select target:", reply_markup=markup)
-
-@bot.callback_query_handler(func=lambda call: call.data.startswith('send_'))
-def set_broadcast_target(call):
-    admin_states[call.from_user.id] = call.data.split('_')[1]
-    bot.answer_callback_query(call.id)
-    bot.send_message(call.message.chat.id, "Send message or photo now:")
-
-@bot.message_handler(content_types=['text', 'photo'], func=lambda m: m.from_user.id in admin_states)
-def perform_broadcast(message):
-    target = admin_states.pop(message.from_user.id)
-    with get_db() as conn:
-        cursor = conn.cursor()
-        if target == 'all': cursor.execute("SELECT user_id FROM users WHERE plan != 'expired'")
-        else: cursor.execute("SELECT user_id FROM users WHERE plan = ?", (target,))
-        users = cursor.fetchall()
-    count = 0
-    for (u_id,) in users:
-        try:
-            bot.copy_message(u_id, message.chat.id, message.message_id)
-            count += 1
-        except: continue
-    bot.reply_to(message, f"✅ Sent to {count} users.")
-
-# --- 3. MINI APP DATA (THE FIX) ---
+# --- HANDLES MINI APP DATA (FREE & STARS) ---
 @bot.message_handler(content_types=['web_app_data'])
 def handle_app_data(message):
-    try:
-        web_data = json.loads(message.web_app_data.data)
-        action = web_data.get('action')
-        plan_type = web_data.get('plan')
-        user_id = message.from_user.id
-        expiry = (datetime.now() + timedelta(days=30)).isoformat()
-
-        if action == 'subscribe':
-            with get_db() as conn:
-                conn.execute("INSERT OR REPLACE INTO users (user_id, plan, expiry_date) VALUES (?, 'free', ?)", (user_id, expiry))
-            bot.send_message(user_id, "✅ <b>Free Plan Activated!</b>\nYour 30-day access is ready.", parse_mode="HTML")
-            
-        elif action == 'buy_stars':
-            prices = {'pro': 555, 'premium': 1111}
-            # Stars invoices require NO payment token
-            bot.send_invoice(
-                user_id, 
-                title=f"MindEye {plan_type.capitalize()}", 
-                description="1-Month Signal Access", 
-                invoice_payload=f"plan_{plan_type}", 
-                provider_token="", 
-                currency="XTR", 
-                prices=[LabeledPrice("Price", prices[plan_type])]
-            )
-    except Exception as e:
-        # This will tell you exactly what is failing in the chat
-        bot.send_message(message.chat.id, f"❌ System Error: {str(e)}")
-
-@bot.pre_checkout_query_handler(func=lambda q: True)
-def checkout(q): bot.answer_pre_checkout_query(q.id, ok=True)
-
-@bot.message_handler(content_types=['successful_payment'])
-def success(m):
-    plan = m.successful_payment.invoice_payload.split('_')[1]
+    data = json.loads(message.web_app_data.data)
+    user_id = message.from_user.id
     expiry = (datetime.now() + timedelta(days=30)).isoformat()
-    with get_db() as conn:
-        conn.execute("UPDATE users SET plan = ?, expiry_date = ? WHERE user_id = ?", (plan, expiry, m.chat.id))
-    bot.send_message(m.chat.id, "🌟 <b>Payment Successful!</b> Access granted.")
+    
+    if data['action'] == 'subscribe':
+        with get_db() as conn:
+            conn.execute("INSERT OR REPLACE INTO users (user_id, plan, expiry) VALUES (?, 'free', ?)", (user_id, expiry))
+        bot.send_message(user_id, "✅ Free Plan Activated for 30 days!")
+        
+    elif data['action'] == 'buy_stars':
+        prices = {'pro': 555, 'premium': 1111}
+        bot.send_invoice(user_id, f"MindEye {data['plan']}", "1-Month Access", f"plan_{data['plan']}", "", "XTR", [LabeledPrice("Price", prices[data['plan']])])
 
-# --- 4. WEBHOOK ---
-@app.route('/webhook', methods=['POST'])
+# --- ADMIN BROADCAST (TEXT + PHOTOS) ---
+@bot.message_handler(commands=['send'])
+def broadcast(m):
+    if str(m.from_user.id) != str(ADMIN_ID): return
+    markup = InlineKeyboardMarkup()
+    markup.add(InlineKeyboardButton("All", callback_data="send_all"))
+    bot.reply_to(m, "Broadcast to who?", reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('send_'))
+def set_target(call):
+    admin_states[call.from_user.id] = call.data.split('_')[1]
+    bot.send_message(call.message.chat.id, "Send text or photo now:")
+
+@bot.message_handler(content_types=['text', 'photo'], func=lambda m: m.from_user.id in admin_states)
+def run_broadcast(m):
+    target = admin_states.pop(m.from_user.id)
+    with get_db() as conn:
+        users = conn.execute("SELECT user_id FROM users WHERE plan != 'expired'").fetchall()
+    for (uid,) in users:
+        try: bot.copy_message(uid, m.chat.id, m.message_id)
+        except: continue
+    bot.reply_to(m, "✅ Sent!")
+
+# --- OTHER COMMANDS ---
+@bot.message_handler(commands=['id'])
+def show_id(m): bot.reply_to(m, f"ID: <code>{m.from_user.id}</code>", parse_mode="HTML")
+
+@bot.message_handler(commands=['upgrade'])
+def manual(m):
+    if str(m.from_user.id) != str(ADMIN_ID): return
+    args = m.text.split()
+    exp = (datetime.now() + timedelta(days=30)).isoformat()
+    with get_db() as conn:
+        conn.execute("INSERT OR REPLACE INTO users (user_id, plan, expiry) VALUES (?, ?, ?)", (args[1], args[2], exp))
+    bot.send_message(args[1], "🌟 Membership Activated!")
+
+@bot.route('/webhook', methods=['POST'])
 def webhook():
-    if request.headers.get('content-type') == 'application/json':
-        update = telebot.types.Update.de_json(request.get_data().decode('utf-8'))
-        bot.process_new_updates([update])
-        return '', 200
-    return 'Forbidden', 403
+    bot.process_new_updates([telebot.types.Update.de_json(request.get_data().decode('utf-8'))])
+    return '', 200
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)))
+    app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 10000)))
