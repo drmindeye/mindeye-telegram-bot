@@ -10,7 +10,6 @@ app = Flask(__name__)
 # --- CONFIGURATION ---
 TOKEN = os.environ.get('TOKEN')
 ADMIN_ID = os.environ.get('ADMIN_ID')
-# Set this in Render if using a card provider; leave blank for Telegram Stars
 PAYMENT_TOKEN = os.environ.get('PAYMENT_TOKEN', '') 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
@@ -25,35 +24,40 @@ with get_db() as conn:
     conn.execute('''CREATE TABLE IF NOT EXISTS users 
                   (user_id INTEGER PRIMARY KEY, plan TEXT DEFAULT 'free')''')
 
-# --- 1. WELCOME & MANUAL UPGRADE COMMANDS ---
+# --- 1. ADMIN COMMANDS (MANUAL ONBOARDING) ---
+
 @bot.message_handler(commands=['start'])
 def start(message):
+    # Log the ID to your Render console so you can see who joins
+    print(f"NEW USER: {message.from_user.first_name} | ID: {message.from_user.id}")
+    
     welcome_text = (
-        "<b>Welcome to MindEye AI Analyst!</b> 🚀\n\n"
+        f"<b>Welcome, {message.from_user.first_name}!</b> 🚀\n\n"
         "To access our trading signals and mentorship, "
         "please click the <b>'Signals'</b> button at the bottom left.\n\n"
-        "<i>Note: Using the Menu button ensures all features work correctly.</i>"
+        "<i>Note: Opening the app via the Menu button is required for payments.</i>"
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode="HTML")
 
 @bot.message_handler(commands=['upgrade'])
 def manual_upgrade(message):
-    """Command for Admin to onboard manual payers: /upgrade USER_ID plan"""
+    """Admin tool to manually upgrade a user: /upgrade [ID] [plan]"""
     if str(message.from_user.id) != str(ADMIN_ID): return
     try:
         args = message.text.split()
         target_id = args[1]
-        new_plan = args[2].lower() # e.g., pro or premium
+        new_plan = args[2].lower() # pro or premium
         
         with get_db() as conn:
             conn.execute("INSERT OR REPLACE INTO users (user_id, plan) VALUES (?, ?)", (target_id, new_plan))
         
-        bot.send_message(message.chat.id, f"✅ User {target_id} upgraded to {new_plan.upper()}.")
-        bot.send_message(target_id, f"🌟 <b>Plan Activated!</b>\nYour {new_plan.upper()} subscription is now live. Welcome to MindEye!")
-    except:
-        bot.reply_to(message, "Usage: /upgrade [USER_ID] [pro/premium]")
+        bot.send_message(message.chat.id, f"✅ Success: {target_id} upgraded to {new_plan.upper()}.")
+        bot.send_message(target_id, f"🌟 <b>Membership Active!</b>\nYour {new_plan.upper()} plan has been activated. Welcome to the inner circle!")
+    except Exception as e:
+        bot.reply_to(message, "❌ Error. Use: /upgrade [USER_ID] [pro/premium]")
 
-# --- 2. ADMIN SIGNAL BROADCASTING ---
+# --- 2. ADMIN BROADCASTING ---
+
 @bot.message_handler(commands=['send'])
 def admin_broadcast_start(message):
     if str(message.from_user.id) != str(ADMIN_ID): return
@@ -62,7 +66,7 @@ def admin_broadcast_start(message):
                InlineKeyboardButton("Pro", callback_data='send_pro'))
     markup.add(InlineKeyboardButton("Premium", callback_data='send_premium'), 
                InlineKeyboardButton("All", callback_data='send_all'))
-    bot.reply_to(message, "📢 Select target group for signal:", reply_markup=markup)
+    bot.reply_to(message, "📢 Select target group for the signal:", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('send_'))
 def set_broadcast_target(call):
@@ -81,27 +85,27 @@ def perform_broadcast(message):
         else:
             cursor.execute("SELECT user_id FROM users WHERE plan = ?", (target,))
         users = cursor.fetchall()
+    
     count = 0
     for u in users:
         try:
             bot.copy_message(u[0], message.chat.id, message.message_id)
             count += 1
         except: continue
-    bot.reply_to(message, f"✅ Sent to {count} users.")
+    bot.reply_to(message, f"✅ Signal sent to {count} users.")
 
-# --- 3. MINI APP DATA HANDLING (The Clickable logic) ---
+# --- 3. MINI APP DATA (CLICKABLE LOGIC) ---
+
 @bot.message_handler(content_types=['web_app_data'])
 def handle_app_data(message):
     data = json.loads(message.web_app_data.data)
     user_id = message.from_user.id
     
-    # Logic for: sendAction('subscribe', 'free')
     if data['action'] == 'subscribe':
         with get_db() as conn:
             conn.execute("INSERT OR REPLACE INTO users (user_id, plan) VALUES (?, ?)", (user_id, 'free'))
-        bot.send_message(user_id, "✅ <b>Registered!</b>\nYour 1-Month Free Plan is now active. Signals will arrive here!")
+        bot.send_message(user_id, "✅ <b>Success!</b>\nYour 1-Month Free Plan is now active. Signals will arrive in this chat!")
     
-    # Logic for: sendAction('buy_stars', plan)
     elif data['action'] == 'buy_stars':
         currency = "USD" if PAYMENT_TOKEN else "XTR"
         prices_map = {'pro': 1499 if PAYMENT_TOKEN else 555, 
@@ -110,14 +114,15 @@ def handle_app_data(message):
         bot.send_invoice(
             user_id, 
             f"MindEye {data['plan'].capitalize()}", 
-            "1-Month Institutional Signal Access", 
+            "1-Month Access to Institutional Signals", 
             f"plan_{data['plan']}", 
             PAYMENT_TOKEN, 
             currency, 
             [LabeledPrice("Access Fee", prices_map[data['plan']])]
         )
 
-# --- 4. CHECKOUT & SUCCESS ---
+# --- 4. CHECKOUT & PAYMENT ---
+
 @bot.pre_checkout_query_handler(func=lambda query: True)
 def checkout_ok(query):
     bot.answer_pre_checkout_query(query.id, ok=True)
@@ -127,9 +132,10 @@ def payment_success(message):
     plan = message.successful_payment.invoice_payload.split('_')[1]
     with get_db() as conn:
         conn.execute("UPDATE users SET plan = ? WHERE user_id = ?", (plan, message.chat.id))
-    bot.send_message(message.chat.id, f"🌟 <b>Payment Received!</b>\nYou are now a {plan.upper()} member. Welcome!")
+    bot.send_message(message.chat.id, f"🌟 <b>Payment Received!</b>\nYou are now a {plan.upper()} member.")
 
-# --- 5. WEBHOOK ROUTE ---
+# --- 5. DEPLOYMENT ---
+
 @app.route('/webhook', methods=['POST'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
