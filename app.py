@@ -10,7 +10,6 @@ app = Flask(__name__)
 # --- CONFIGURATION ---
 TOKEN = os.environ.get('TOKEN')
 ADMIN_ID = os.environ.get('ADMIN_ID')
-# If using a provider like Smart Glocal, put the token here. Leave empty for Stars.
 PAYMENT_TOKEN = os.environ.get('PAYMENT_TOKEN', '') 
 
 bot = telebot.TeleBot(TOKEN, threaded=False)
@@ -31,9 +30,9 @@ def start(message):
     welcome_text = (
         "<b>Welcome to MindEye AI Analyst!</b> 🚀\n\n"
         "To access our trading signals, mentorship, and AI bots, "
-        "please click the <b>'MINDEYE AI'</b> button located at the bottom left "
+        "please click the <b>'Signals'</b> button located at the bottom left "
         "of your screen.\n\n"
-        "<i>Note: Using the MINDEYE AI button ensures all features work correctly.</i>"
+        "<i>Note: Using the Menu button ensures all features work correctly.</i>"
     )
     bot.send_message(message.chat.id, welcome_text, parse_mode="HTML")
 
@@ -43,8 +42,10 @@ def admin_broadcast_start(message):
     if str(message.from_user.id) != str(ADMIN_ID):
         return
     markup = InlineKeyboardMarkup()
-    markup.add(InlineKeyboardButton("Free", callback_data='send_free'), InlineKeyboardButton("Pro", callback_data='send_pro'))
-    markup.add(InlineKeyboardButton("Premium", callback_data='send_premium'), InlineKeyboardButton("All", callback_data='send_all'))
+    markup.add(InlineKeyboardButton("Free", callback_data='send_free'), 
+               InlineKeyboardButton("Pro", callback_data='send_pro'))
+    markup.add(InlineKeyboardButton("Premium", callback_data='send_premium'), 
+               InlineKeyboardButton("All", callback_data='send_all'))
     bot.reply_to(message, "📢 Select target group for signal:", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('send_'))
@@ -52,7 +53,7 @@ def set_broadcast_target(call):
     target = call.data.split('_')[1]
     admin_states[call.from_user.id] = target
     bot.answer_callback_query(call.id)
-    bot.send_message(call.message.chat.id, f"🎯 Target: {target.upper()}\nSend signal content (text/image/chart) now:")
+    bot.send_message(call.message.chat.id, f"🎯 Target: {target.upper()}\nSend signal content now:")
 
 @bot.message_handler(func=lambda m: m.from_user.id in admin_states)
 def perform_broadcast(message):
@@ -84,13 +85,12 @@ def handle_app_data(message):
         bot.send_message(user_id, "✅ <b>Registered!</b>\nYour 1-Month Free Plan is now active.")
     
     elif data['action'] == 'buy_stars':
-        # Logic: If PAYMENT_TOKEN exists, use USD prices. Otherwise, use Stars (XTR).
         if PAYMENT_TOKEN:
             currency = "USD"
-            prices_map = {'pro': 1499, 'premium': 2999} # $14.99 and $29.99 in cents
+            prices_map = {'pro': 1499, 'premium': 2999} 
         else:
             currency = "XTR"
-            prices_map = {'pro': 555, 'premium': 1111} # Stars amounts
+            prices_map = {'pro': 555, 'premium': 1111} 
 
         bot.send_invoice(
             user_id, 
@@ -102,26 +102,21 @@ def handle_app_data(message):
             [LabeledPrice("Price", prices_map[data['plan']])]
         )
 
-# --- 4. CHECKOUT & SUCCESS ---
 @bot.pre_checkout_query_handler(func=lambda query: True)
 def checkout_ok(query):
     bot.answer_pre_checkout_query(query.id, ok=True)
 
 @bot.message_handler(content_types=['successful_payment'])
 def payment_success(message):
-    # Extracts 'pro' or 'premium' from the invoice payload
     plan = message.successful_payment.invoice_payload.split('_')[1]
     with get_db() as conn:
         conn.execute("UPDATE users SET plan = ? WHERE user_id = ?", (plan, message.chat.id))
-    bot.send_message(message.chat.id, f"🌟 <b>Payment Received!</b>\nYou are now a {plan.upper()} member. Welcome!")
+    bot.send_message(message.chat.id, f"🌟 <b>Payment Received!</b>\nYou are now a {plan.upper()} member.")
 
-# --- 5. WEBHOOK ROUTE ---
 @app.route('/webhook', methods=['POST'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
-        json_string = request.get_data().decode('utf-8')
-        update = telebot.types.Update.de_json(json_string)
-        bot.process_new_updates([update])
+        bot.process_new_updates([telebot.types.Update.de_json(request.get_data().decode('utf-8'))])
         return ''
     return 'Forbidden', 403
 
