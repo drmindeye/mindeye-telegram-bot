@@ -50,7 +50,7 @@
 
         <div id="payment_options" class="card screen">
             <h2 id="option_title">Payment Options</h2>
-            <p>Choose your method:</p>
+            <p>Choose your preferred method:</p>
             <button class="btn btn-primary" id="stars_btn">📱 Telegram Stars</button>
             <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">💳 Crypto or Fiat (Manual)</button>
             <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('signals')">⬅ Back</button>
@@ -58,30 +58,32 @@
 
         <div id="mentorship" class="card screen">
             <h2>Mentorship</h2>
-            <p>Master institutional trading with our 1-on-1 programs.</p>
+            <p>Master institutional trading with our 1-on-1 coaching.</p>
             <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">View Curriculum</button>
             <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
         </div>
 
         <div id="account" class="card screen">
             <h2>Account Management</h2>
-            <p>Let our professionals manage your capital with advanced risk control.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Talk to Manager</button>
+            <p>Institutional capital management with high-tier risk control.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Contact Fund Manager</button>
             <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
         </div>
 
         <div id="bots" class="card screen">
             <h2>AI Trading Bots</h2>
-            <p>Automate your profit with our proprietary AI algorithms.</p>
+            <p>Proprietary HFT and Trend-following algorithms.</p>
             <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get XAUUSD Bot</button>
             <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
         </div>
 
         <div id="results" class="card screen">
-            <h2>Our Results</h2>
-            <p>Track our performance across all signals and bots.</p>
-            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">Verified Track Record</button>
-            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+            <h2>Performance Results</h2>
+            <p>Explore our verified history of success.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📊 Signal & Analysis Results</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">🤖 Bot Results</button>
+            <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
         </div>
     </div>
 
@@ -106,9 +108,8 @@
 
         function sendAction(action, plan) {
             webapp.HapticFeedback.notificationOccurred('success');
-            // This is the CRITICAL part - it sends data to the bot
             webapp.sendData(JSON.stringify({ action: action, plan: plan }));
-            webapp.close(); // Closes app so user sees the bot message
+            webapp.close();
         }
     </script>
 </body>
