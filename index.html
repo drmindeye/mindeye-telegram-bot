@@ -12,13 +12,13 @@
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; color: #ffffff; background: #0d1117; min-height: 100vh; }
         .container { width: 100%; max-width: 450px; margin: auto; padding: 20px; }
         .card { background: var(--glass); backdrop-filter: blur(20px); border: 1px solid var(--border); border-radius: 24px; padding: 24px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .badge { background: var(--mindeye-green); padding: 5px 15px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; display: inline-block; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.2); }
         .logo { width: 80px; height: 80px; border-radius: 50%; border: 2px solid var(--mindeye-green); margin-bottom: 15px; }
         h2 { font-size: 1.2rem; font-weight: 700; margin-bottom: 10px; color: #fff; }
         p { font-size: 0.9rem; color: #aaa; line-height: 1.4; margin-bottom: 20px; }
         .btn { width: 100%; padding: 16px; margin: 8px 0; border-radius: 14px; border: none; font-size: 15px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; color: white; text-decoration: none; }
         .btn-primary { background: var(--mindeye-green); }
         .btn-secondary { background: rgba(255, 255, 255, 0.1); }
-        .plan-info { font-size: 0.75rem; color: #888; margin-top: -5px; margin-bottom: 12px; display: block; }
         .screen { display: none; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         #home { display: block; }
@@ -27,6 +27,7 @@
 <body>
     <div class="container">
         <div id="home" class="card">
+            <div id="status_badge" class="badge">Checking Subscription...</div><br>
             <img src="logo.png" class="logo" alt="Logo">
             <h2>MINDEYE AI ANALYST</h2>
             <button class="btn btn-primary" onclick="show('signals')">📊 Signals & Analysis</button>
@@ -52,16 +53,35 @@
             <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('signals')">⬅ Back</button>
         </div>
 
+        <div id="mentorship" class="card screen">
+            <h2>Mentorship</h2>
+            <p>Master institutional trading with our 1-on-1 coaching and curriculum.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">View Curriculum</button>
+            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="account" class="card screen">
+            <h2>Account Management</h2>
+            <p>Institutional capital management with advanced risk-mitigation strategies.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Talk to Manager</button>
+            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+        </div>
+
+        <div id="bots" class="card screen">
+            <h2>AI Trading Bots</h2>
+            <p>Automate your trading with our proprietary HFT and trend algorithms.</p>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get EURUSD Bot</button>
+            <button class="btn btn-primary" onclick="tg('https://t.me/mindeyesupport')">Get XAUUSD Bot</button>
+            <button class="btn btn-secondary" onclick="show('home')">⬅ Back</button>
+        </div>
+
         <div id="results" class="card screen">
             <h2>Performance Results</h2>
+            <p>Explore our verified track record of success.</p>
             <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">📊 Signal & Analysis Results</button>
             <button class="btn btn-primary" onclick="tg('https://t.me/mindeyetrading')">🤖 Bot Results</button>
             <button class="btn btn-secondary" style="margin-top:20px;" onclick="show('home')">⬅ Back</button>
         </div>
-
-        <div id="mentorship" class="card screen"><h2>Mentorship</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
-        <div id="account" class="card screen"><h2>Account Mgmt</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
-        <div id="bots" class="card screen"><h2>AI Bots</h2><button class="btn btn-secondary" onclick="show('home')">⬅ Back</button></div>
     </div>
 
     <script>
@@ -69,9 +89,26 @@
         webapp.ready();
         webapp.expand();
 
+        // Check Subscription on Load
+        const userId = webapp.initDataUnsafe.user.id;
+        const apiBase = "https://mindeye-telegram-bot.onrender.com"; // Change to your Render URL
+
+        fetch(`${apiBase}/status/${userId}`)
+            .then(res => res.json())
+            .then(data => {
+                const badge = document.getElementById('status_badge');
+                if(data.plan === 'none' || data.plan === 'expired') {
+                    badge.innerText = "No Active Subscription";
+                    badge.style.background = "#ff4444";
+                } else {
+                    badge.innerText = `${data.plan.toUpperCase()} • ${data.days_left} Days Left`;
+                }
+            });
+
         function show(id) {
             document.querySelectorAll('.screen, #home').forEach(e => e.style.display = 'none');
             document.getElementById(id).style.display = 'block';
+            webapp.HapticFeedback.impactOccurred('light');
         }
 
         function showPaymentOptions(plan, price) {
